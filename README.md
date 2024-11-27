@@ -1,3 +1,2 @@
-# 趣评-前端项目
-
-> 采用Vue3+TS 使用AI构建
+# QuPing - FrontEnd
+> generate by ai
