@@ -1,40 +1,33 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
-import Me from '../views/me.vue'
+import RatingDetail from '../views/RatingDetail.vue'
+import Me from '../views/Me.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    {
+      path: '/',
+      name: 'Home',
+      component: Home
+    },
     {
       path: '/login',
       name: 'Login',
       component: Login
     },
     {
-      path: '/me',
-      name: 'Me',
-      component: Me,
-      meta: { requiresAuth: true }
+      path: '/rating/:id',
+      name: 'RatingDetail',
+      component: RatingDetail
     },
     {
-      path: '/',
-      redirect: '/login'
+      path: '/me',
+      name: 'Me',
+      component: Me
     }
   ]
-})
-
-// 路由守卫
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth) {
-    const token = localStorage.getItem('token')
-    if (token) {
-      next()
-    } else {
-      next('/login')
-    }
-  } else {
-    next()
-  }
 })
 
 export default router

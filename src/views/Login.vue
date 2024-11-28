@@ -214,8 +214,8 @@ const handleLogin = async () => {
       // 保存token
       localStorage.setItem('token', res.data.data)
       ElMessage.success('登录成功')
-      // 跳转到me页面
-      router.push('/me')
+      // 确保使用 await 等待路由跳转完成
+      await router.push({ name: 'Home' })
     } else {
       ElMessage.error(res.data.msg || '登录失败')
     }
