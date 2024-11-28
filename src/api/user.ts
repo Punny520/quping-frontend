@@ -15,4 +15,26 @@ export const getEmailCode = (email: string) => {
 
 export const login = (params: LoginParams) => {
   return request.post<ApiResponse<string>>('/user/doLogin', params)
+}
+
+// 获取用户信息
+export const getUserInfo = () => {
+  return request({
+    url: '/user/me',
+    method: 'get',
+    headers: {
+      'Token': localStorage.getItem('token')
+    }
+  })
+}
+
+// 登出
+export const logout = () => {
+  return request({
+    url: '/user/loginOut',
+    method: 'get',
+    headers: {
+      'Token': localStorage.getItem('token')
+    }
+  })
 } 

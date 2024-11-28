@@ -42,3 +42,26 @@ data是用户登录成功后返回的token
     "phoneNumber":"18070403876",
     "password":"123456"
 }
+
+接下来完善一下个人主页，个人主页需要展示用户的基本信息
+调用/user/me接口并且在请求头携带Token
+{
+    "Token":"35cef2f4469d44b8b7e58f2c2c83a42f"
+}
+注意大小写敏感
+响应后端响应的格式为：
+{
+	"code": "1",
+	"msg": "ok",
+	"data": {
+		"id": 1006,
+		"nickName": "HIabqK7MGG",
+		"phoneNumber": "18070403876",
+		"password": "123456",
+		"email": ""
+	}
+}
+展示id、nickName、phoneNumber、email
+
+添加一个登出按钮，调用接口/user/loginOut请求方式为get,后端无返回，只需要调用
+然后清除本地存储的token信息，并且跳转回登录界面
