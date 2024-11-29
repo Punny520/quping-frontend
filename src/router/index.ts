@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import RatingDetail from '../views/RatingDetail.vue'
 import Me from '../views/Me.vue'
+import CreateRating from '../views/CreateRating.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/me',
       name: 'Me',
       component: Me
+    },
+    {
+      path: '/rating/create',
+      name: 'CreateRating',
+      component: CreateRating
     }
   ]
 })
