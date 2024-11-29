@@ -26,4 +26,15 @@ export const getRatingList = (params: PageParams) => {
       'Token': localStorage.getItem('token')
     }
   })
+}
+
+// 添加获取总记录数的方法
+export const getRatingTotal = () => {
+  return request({
+    url: '/rating/total',
+    method: 'get',
+    headers: {
+      'Token': localStorage.getItem('token')
+    }
+  })
 } 

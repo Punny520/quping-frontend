@@ -76,7 +76,7 @@
 import { ref, onMounted } from 'vue'
 import { Search, User } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { getRatingList } from '../api/rating'
+import { getRatingList, getRatingTotal } from '../api/rating'
 import RatingCard from '../components/RatingCard.vue'
 import { ElMessage } from 'element-plus'
 
@@ -87,6 +87,19 @@ const pageSize = ref(10)
 const total = ref(0)
 const ratingList = ref([])
 
+// 使用新的 API 方法
+const getTotalCount = async () => {
+  try {
+    const res = await getRatingTotal()
+    console.log('获取总数响应:', res)
+    total.value = parseInt(res.data)
+    console.log('设置总数:', total.value)
+  } catch (error) {
+    console.error('获取总数错误:', error)
+    ElMessage.error('获取总记录数失败')
+  }
+}
+
 const fetchRatingList = async () => {
   try {
     const res = await getRatingList({
@@ -96,27 +109,34 @@ const fetchRatingList = async () => {
     
     if (res.data.code === '1') {
       ratingList.value = res.data.data
-      total.value = res.data.pageInfo?.total || 0
+      console.log('获取列表数据:', ratingList.value) // 添加调试日志
     } else {
       ElMessage.error(res.data.msg || '获取数据失败')
     }
   } catch (error) {
+    console.error('获取列表错误:', error) // 添加错误日志
     ElMessage.error('获取数据失败')
   }
 }
 
-const handleSizeChange = (val: number) => {
+const handleSizeChange = async (val: number) => {
+  console.log('改变每页数量:', val) // 添加调试日志
   pageSize.value = val
-  fetchRatingList()
+  currentPage.value = 1
+  await getTotalCount()
+  await fetchRatingList()
 }
 
-const handleCurrentChange = (val: number) => {
+const handleCurrentChange = async (val: number) => {
+  console.log('改变当前页:', val) // 添加调试日志
   currentPage.value = val
-  fetchRatingList()
+  await fetchRatingList()
 }
 
-onMounted(() => {
-  fetchRatingList()
+onMounted(async () => {
+  console.log('组件挂载，开始获取数据') // 添加调试日志
+  await getTotalCount()
+  await fetchRatingList()
 })
 </script>
 
