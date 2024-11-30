@@ -235,15 +235,38 @@ onMounted(async () => {
   padding: 0 30px;
 }
 
-.search-input :deep(.el-input__wrapper) {
-  box-shadow: 0 2px 12px rgba(26, 115, 232, 0.08);
-  border-radius: 8px;
-  padding: 4px 11px;
+.search-input :deep(.el-input-group__append) {
+  background-color: #1a73e8;
+  border-color: #1a73e8;
+  color: white;
   transition: all 0.3s ease;
+  border-radius: 8px;
+  margin-left: 8px;
 }
 
-.search-input :deep(.el-input__wrapper:hover) {
-  box-shadow: 0 4px 16px rgba(26, 115, 232, 0.12);
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 8px;
+  border: 1px solid #dcdfe6;
+}
+
+.search-input :deep(.el-input__wrapper:focus-within) {
+  border-radius: 8px;
+}
+
+.search-input :deep(.el-input-group__append .el-button) {
+  border: none;
+  color: white;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.search-input :deep(.el-input-group__append:hover) {
+  background-color: #1557b0;
+  border-color: #1557b0;
+}
+
+.search-input :deep(.el-input__wrapper:focus-within) + .el-input-group__append {
+  border-radius: 8px;
 }
 
 .content-area {
