@@ -1,42 +1,74 @@
 <template>
   <div class="rating-detail">
     <el-card class="detail-card">
-      <template #header>
-        <div class="card-header">
-          <h2>{{ ratingDetail.title }}</h2>
-          <el-button @click="goBack">返回</el-button>
-        </div>
-      </template>
+      <div class="card-header">
+        <el-button type="primary" @click="goBack">返回</el-button>
+      </div>
 
-      <div class="content">
-        <div class="image-container">
-          <img :src="ratingDetail.imageUrl" class="detail-image" />
+      <div class="header-section">
+        <div class="image-section">
+          <el-image 
+            :src="ratingDetail.imageUrl" 
+            class="detail-image"
+            fit="cover"
+          >
+            <template #error>
+              <div class="image-error">
+                <el-icon><Picture /></el-icon>
+                <span>加载失败</span>
+              </div>
+            </template>
+            <template #placeholder>
+              <div class="image-placeholder">
+                <el-icon class="loading-icon"><Loading /></el-icon>
+              </div>
+            </template>
+          </el-image>
         </div>
-        
-        <div class="info-container">
-          <el-descriptions :column="1" border>
-            <el-descriptions-item label="评分">
+        <div class="title-section">
+          <h2>{{ ratingDetail.title }}</h2>
+          <div class="rating-summary">
+            <div class="average-score">
+              <span class="score-number">{{ ratingDetail.score.toFixed(1) }}</span>
               <el-rate
                 v-model="ratingDetail.score"
                 disabled
                 show-score
                 text-color="#ff9900"
+                score-template=""
+              />
+            </div>
+            <div class="rating-count">
+              {{ ratingDetail.count }} 人评分
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="description-section">
+          <h3>详细描述</h3>
+          <div class="description-text">
+            {{ ratingDetail.text }}
+          </div>
+        </div>
+
+        <div class="my-rating-section">
+          <h3>我的评分</h3>
+          <div class="my-rating-content">
+            <template v-if="ratingDetail.myScore">
+              <el-rate
+                v-model="ratingDetail.myScore"
+                disabled
+                show-score
+                text-color="#ff9900"
                 score-template="{value}"
               />
-            </el-descriptions-item>
-            <el-descriptions-item label="评分人数">
-              {{ ratingDetail.count }}
-            </el-descriptions-item>
-            <el-descriptions-item label="我的评分">
-              {{ ratingDetail.myScore || '暂未评分' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="描述">
-              {{ ratingDetail.text }}
-            </el-descriptions-item>
-            <el-descriptions-item label="创建者">
-              {{ ratingDetail.createBy || '未知' }}
-            </el-descriptions-item>
-          </el-descriptions>
+            </template>
+            <template v-else>
+              <span class="no-rating">暂未评分</span>
+            </template>
+          </div>
         </div>
       </div>
     </el-card>
@@ -48,6 +80,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRatingDetail } from '../api/rating'
 import { ElMessage } from 'element-plus'
+import { Picture, Loading } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -79,7 +112,10 @@ const fetchRatingDetail = async () => {
     const id = Number(route.params.id)
     const res = await getRatingDetail(id)
     if (res.data.code === '1') {
-      ratingDetail.value = res.data.data
+      ratingDetail.value = {
+        ...res.data.data,
+        score: Number(res.data.data.score) / 100
+      }
     } else {
       ElMessage.error(res.data.msg || '获取评分详情失败')
     }
@@ -104,37 +140,133 @@ onMounted(() => {
   margin: 0 auto;
 }
 
+.card-header {
+  text-align: right;
+  padding: 0 20px 20px;
+}
+
 .detail-card {
   margin-top: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.content {
+.header-section {
   display: flex;
   gap: 30px;
+  margin-bottom: 30px;
 }
 
-.image-container {
-  flex: 0 0 400px;
+.image-section {
+  flex: 0 0 300px;
+  width: 300px;
+  height: 200px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .detail-image {
   width: 100%;
-  height: auto;
+  height: 100%;
+}
+
+.image-error,
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #909399;
+  font-size: 14px;
+  background-color: #f5f7fa;
+}
+
+.image-error .el-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.loading-icon {
+  font-size: 24px;
+  animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.title-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title-section h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #303133;
+}
+
+.rating-summary {
+  background-color: #f5f7fa;
+  padding: 20px;
   border-radius: 8px;
 }
 
-.info-container {
-  flex: 1;
+.average-score {
+  margin-bottom: 10px;
 }
 
-:deep(.el-descriptions__label) {
-  width: 120px;
-  justify-content: center;
+.score-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #ff9900;
+  margin-right: 10px;
+}
+
+.rating-count {
+  color: #909399;
+  font-size: 0.9rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.description-section,
+.my-rating-section {
+  background-color: #f5f7fa;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+h3 {
+  margin: 0 0 15px 0;
+  color: #303133;
+  font-size: 1.1rem;
+}
+
+.description-text {
+  line-height: 1.6;
+  color: #606266;
+}
+
+.my-rating-content {
+  padding: 10px 0;
+}
+
+.no-rating {
+  color: #909399;
+  font-size: 1rem;
 }
 </style> 
