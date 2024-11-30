@@ -81,8 +81,8 @@ const goToDetail = () => {
 }
 
 .card-image {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   flex-shrink: 0;
   border-radius: 4px;
   overflow: hidden;

@@ -136,13 +136,8 @@ onMounted(() => {
 <style scoped>
 .rating-detail {
   padding: 20px;
-  max-width: 1000px;
+  max-width: 800px;
   margin: 0 auto;
-}
-
-.card-header {
-  text-align: right;
-  padding: 0 20px 20px;
 }
 
 .detail-card {
@@ -150,15 +145,21 @@ onMounted(() => {
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
+.card-header {
+  text-align: right;
+  padding: 0 20px 20px;
+}
+
 .header-section {
   display: flex;
   gap: 30px;
   margin-bottom: 30px;
+  padding: 0 20px;
 }
 
 .image-section {
-  flex: 0 0 300px;
-  width: 300px;
+  flex: 0 0 200px;
+  width: 200px;
   height: 200px;
   background-color: #f5f7fa;
   border-radius: 8px;
@@ -207,6 +208,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 10px 0;
 }
 
 .title-section h2 {
@@ -240,7 +242,8 @@ onMounted(() => {
 .content {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 20px;
+  padding: 0 20px 20px;
 }
 
 .description-section,
