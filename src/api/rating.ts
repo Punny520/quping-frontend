@@ -37,4 +37,19 @@ export const getRatingTotal = () => {
       'Token': localStorage.getItem('token')
     }
   })
+}
+
+// 添加评分
+export const doRating = (ratingId: number, score: number) => {
+  return request({
+    url: '/rating/doRating',
+    method: 'post',
+    data: {
+      ratingId,
+      score
+    },
+    headers: {
+      'Token': localStorage.getItem('token')
+    }
+  })
 } 

@@ -39,7 +39,7 @@
               />
             </div>
             <div class="rating-count">
-              {{ ratingDetail.count }} 人评分
+              {{ ratingDetail.count > 0 ? `${ratingDetail.count} 人评分` : '暂无人评分' }}
             </div>
           </div>
         </div>
@@ -56,18 +56,17 @@
         <div class="my-rating-section">
           <h3>我的评分</h3>
           <div class="my-rating-content">
-            <template v-if="ratingDetail.myScore">
-              <el-rate
-                v-model="ratingDetail.myScore"
-                disabled
-                show-score
-                text-color="#ff9900"
-                score-template="{value}"
-              />
-            </template>
-            <template v-else>
-              <span class="no-rating">暂未评分</span>
-            </template>
+            <el-rate
+              v-model="myRatingScore"
+              :disabled="isSubmitting"
+              show-score
+              text-color="#ff9900"
+              score-template="{value}"
+              @change="handleRatingChange"
+            />
+            <div class="rating-tip" v-if="!ratingDetail.myScore">
+              <span class="tip-text">点击星星进行评分</span>
+            </div>
           </div>
         </div>
       </div>
@@ -78,7 +77,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getRatingDetail } from '../api/rating'
+import { getRatingDetail, doRating } from '../api/rating'
 import { ElMessage } from 'element-plus'
 import { Picture, Loading } from '@element-plus/icons-vue'
 
@@ -114,8 +113,9 @@ const fetchRatingDetail = async () => {
     if (res.data.code === '1') {
       ratingDetail.value = {
         ...res.data.data,
-        score: Number(res.data.data.score) / 100
+        score: Number(res.data.data.score)
       }
+      initMyRating()
     } else {
       ElMessage.error(res.data.msg || '获取评分详情失败')
     }
@@ -131,6 +131,38 @@ const goBack = () => {
 onMounted(() => {
   fetchRatingDetail()
 })
+
+const myRatingScore = ref(0)
+const isSubmitting = ref(false)
+
+const handleRatingChange = async (value: number) => {
+  console.log('评分变化:', value)
+  if (isSubmitting.value) return
+
+  try {
+    isSubmitting.value = true
+    const res = await doRating(ratingDetail.value.id, Math.round(value))
+    console.log('评分响应:', res)
+
+    if (res.data.code === '1') {
+      ElMessage.success('评分成功')
+      await fetchRatingDetail()
+    } else {
+      ElMessage.error(res.data.msg || '评分失败')
+      myRatingScore.value = ratingDetail.value.myScore || 0
+    }
+  } catch (error) {
+    console.error('评分错误:', error)
+    ElMessage.error('评分失败')
+    myRatingScore.value = ratingDetail.value.myScore || 0
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const initMyRating = () => {
+  myRatingScore.value = ratingDetail.value.myScore || 0
+}
 </script>
 
 <style scoped>
@@ -266,10 +298,32 @@ h3 {
 
 .my-rating-content {
   padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.no-rating {
+.rating-tip {
+  font-size: 12px;
   color: #909399;
-  font-size: 1rem;
+}
+
+.tip-text {
+  margin-left: 4px;
+}
+
+:deep(.el-rate) {
+  display: inline-flex;
+  align-items: center;
+}
+
+:deep(.el-rate__icon) {
+  font-size: 20px;
+  margin-right: 4px;
+}
+
+:deep(.el-rate__text) {
+  font-size: 14px;
+  color: #ff9900;
 }
 </style> 
