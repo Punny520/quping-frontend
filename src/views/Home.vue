@@ -260,12 +260,14 @@ onMounted(async () => {
 
 .rating-list {
   padding: 20px 30px;
+  background-color: #ffffff;
 }
 
 .rating-grid {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background-color: #ffffff;
 }
 
 .empty-state {

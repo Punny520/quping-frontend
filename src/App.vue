@@ -11,27 +11,13 @@ import { RouterView } from 'vue-router'
 </template>
 
 <style>
-/* 重置默认样式 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 html, body {
-  height: 100%;
-  width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
 
-body {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+#app {
+  min-height: 100vh;
 }
 
 .app-container {
@@ -48,9 +34,7 @@ body {
   justify-content: center;
   align-items: stretch;
   /* 渐变背景 */
-  background: linear-gradient(135deg, #f5f7ff 0%, #e8f0fe 100%);
-  /* 或者使用纯色背景 */
-  /* background-color: #f8faff; */
+  background: linear-gradient(135deg, #f5f7ff 0%, #e8f0fe 100%) !important;
 }
 
 .router-view-container {
@@ -59,20 +43,5 @@ body {
   display: flex;
   justify-content: center;
   overflow: hidden;
-}
-
-/* 可选：添加网格背景纹理 */
-.app-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
-  pointer-events: none;
 }
 </style>
