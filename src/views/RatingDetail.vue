@@ -1,77 +1,75 @@
 <template>
-  <div class="rating-detail">
-    <el-card class="detail-card">
-      <div class="card-header">
-        <el-button type="primary" @click="goBack">返回</el-button>
-      </div>
+  <el-card class="detail-card">
+    <div class="card-header">
+      <el-button type="primary" @click="goBack">返回</el-button>
+    </div>
 
-      <div class="header-section">
-        <div class="image-section">
-          <el-image 
-            :src="ratingDetail.imageUrl" 
-            class="detail-image"
-            fit="cover"
-          >
-            <template #error>
-              <div class="image-error">
-                <el-icon><Picture /></el-icon>
-                <span>加载失败</span>
-              </div>
-            </template>
-            <template #placeholder>
-              <div class="image-placeholder">
-                <el-icon class="loading-icon"><Loading /></el-icon>
-              </div>
-            </template>
-          </el-image>
-        </div>
-        <div class="title-section">
-          <h2>{{ ratingDetail.title }}</h2>
-          <div class="rating-summary">
-            <div class="average-score">
-              <span class="score-number">{{ ratingDetail.score.toFixed(1) }}</span>
-              <el-rate
-                v-model="ratingDetail.score"
-                disabled
-                show-score
-                text-color="#ff9900"
-                score-template=""
-              />
+    <div class="header-section">
+      <div class="image-section">
+        <el-image 
+          :src="ratingDetail.imageUrl" 
+          class="detail-image"
+          fit="cover"
+        >
+          <template #error>
+            <div class="image-error">
+              <el-icon><Picture /></el-icon>
+              <span>加载失败</span>
             </div>
-            <div class="rating-count">
-              {{ ratingDetail.count > 0 ? `${ratingDetail.count} 人评分` : '暂无人评分' }}
+          </template>
+          <template #placeholder>
+            <div class="image-placeholder">
+              <el-icon class="loading-icon"><Loading /></el-icon>
             </div>
-          </div>
-        </div>
+          </template>
+        </el-image>
       </div>
-
-      <div class="content">
-        <div class="description-section">
-          <h3>详细描述</h3>
-          <div class="description-text">
-            {{ ratingDetail.text }}
-          </div>
-        </div>
-
-        <div class="my-rating-section">
-          <h3>我的评分</h3>
-          <div class="my-rating-content">
+      <div class="title-section">
+        <h2>{{ ratingDetail.title }}</h2>
+        <div class="rating-summary">
+          <div class="average-score">
+            <span class="score-number">{{ ratingDetail.score.toFixed(1) }}</span>
             <el-rate
-              v-model="myRatingScore"
-              :disabled="isSubmitting"
+              v-model="ratingDetail.score"
+              disabled
               show-score
               text-color="#ff9900"
-              score-template="{value}"
-              @change="handleRatingChange"
+              score-template=""
             />
-            <div class="rating-tip" v-if="!ratingDetail.myScore">
-              <span class="tip-text">点击星星进行评分</span>
-            </div>
+          </div>
+          <div class="rating-count">
+            {{ ratingDetail.count > 0 ? `${ratingDetail.count} 人评分` : '暂无人评分' }}
           </div>
         </div>
       </div>
-    </el-card>
-  </div>
+    </div>
+
+    <div class="content">
+      <div class="description-section">
+        <h3>详细描述</h3>
+        <div class="description-text">
+          {{ ratingDetail.text }}
+        </div>
+      </div>
+
+      <div class="my-rating-section">
+        <h3>我的评分</h3>
+        <div class="my-rating-content">
+          <el-rate
+            v-model="myRatingScore"
+            :disabled="isSubmitting"
+            show-score
+            text-color="#ff9900"
+            score-template="{value}"
+            @change="handleRatingChange"
+          />
+          <div class="rating-tip" v-if="!ratingDetail.myScore">
+            <span class="tip-text">点击星星进行评分</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </el-card>
 </template>
 
 <script setup lang="ts">
@@ -166,15 +164,33 @@ const initMyRating = () => {
 </script>
 
 <style scoped>
-.rating-detail {
-  padding: 20px;
+.detail-card {
+  min-height: 100vh;
+  height: auto;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 20px auto;
+  background-color: white;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
-.detail-card {
-  margin-top: 20px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+/* 为 Webkit 浏览器（Chrome、Safari）隐藏滚动条 */
+.detail-card::-webkit-scrollbar {
+  display: none;
+}
+
+:deep(.el-card__body) {
+  height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+:deep(.el-card__body::-webkit-scrollbar) {
+  display: none;
 }
 
 .card-header {
