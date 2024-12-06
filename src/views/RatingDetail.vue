@@ -99,9 +99,12 @@
             <div v-for="comment in comments" :key="comment.id" class="comment-item">
               <div class="comment-content">{{ comment.content }}</div>
               <div class="comment-meta">
-                <span class="like-count">
-                  <el-icon><Star /></el-icon>
-                  {{ comment.likeCount }}
+                <span class="like-button" @click="handleLike(comment)">
+                  <el-icon :class="{ 'liked': comment.liked }">
+                    <StarFilled v-if="comment.liked" />
+                    <Star v-else />
+                  </el-icon>
+                  <span>{{ comment.likeCount }}</span>
                 </span>
                 <span class="comment-time">
                   {{ formatTime(comment.createTime) }}
@@ -120,8 +123,8 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRatingDetail, doRating } from '../api/rating'
 import { ElMessage } from 'element-plus'
-import { Picture, Loading, Thumb } from '@element-plus/icons-vue'
-import { postComment, getCommentList } from '../api/comment'
+import { Picture, Loading, Thumb, Star, StarFilled } from '@element-plus/icons-vue'
+import { postComment, getCommentList, likeComment } from '../api/comment'
 
 const route = useRoute()
 const router = useRouter()
@@ -262,6 +265,28 @@ const formatTime = (timeStr: string) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const handleLike = async (comment) => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  try {
+    const res = await likeComment(comment.id)
+    if (res.data.code === '1') {
+      comment.liked = !comment.liked
+      comment.likeCount += comment.liked ? 1 : -1
+    } else {
+      ElMessage.error(res.data.msg || '操作失败')
+    }
+  } catch (error) {
+    console.error('点赞失败:', error)
+    ElMessage.error('操作失败')
+  }
 }
 </script>
 
@@ -506,14 +531,25 @@ h3 {
   color: #909399;
 }
 
-.like-count {
+.like-button {
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
+  transition: all 0.3s ease;
 }
 
-.like-count .el-icon {
-  font-size: 14px;
+.like-button:hover {
+  color: #ff9900;
+}
+
+.like-button .el-icon {
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.like-button .liked {
+  color: #ff9900;
 }
 
 .comment-time {
