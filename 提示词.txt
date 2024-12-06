@@ -139,3 +139,42 @@ data是用户登录成功后返回的token
 Home.vue下面分页页数显示有问题，现在我给你提供一个接口/rating/total
 会返回一个整数，表示当前所有的记录条数，你需要根据这个total、pageSize计算出
 有多少页，并且显示出来
+
+现在需要你在RatingDetail.vue下面新增一个评论模块，主要用于展示用户对评分的评论。
+需要有输入框、发送评论按钮，以及一个评论的列表。
+发送评论的接口为/comment/post 请求方式为post，请求头需要带上Token
+请求体为：
+{
+    "ratingId": 13,
+    "content": "评论内容"
+}
+列出当前评分下的所有评论的接口为/comment/list/{ratingId}请求方式为get也要带上Token
+{
+	"code": "1",
+	"msg": "ok",
+	"data": [
+		{
+			"id": 110,
+			"content": "这是一个评论",
+			"likeCount": 0,
+			"userId": 1008,
+			"ratingId": 114,
+			"createTime": "2024-12-06T11:06:08",
+			"updateTime": "2024-12-06T11:06:08",
+			"deleted": false
+		},
+		{
+			"id": 111,
+			"content": "这是一个评论2",
+			"likeCount": 0,
+			"userId": 1008,
+			"ratingId": 114,
+			"createTime": "2024-12-06T11:07:17",
+			"updateTime": "2024-12-06T11:07:17",
+			"deleted": false
+		}
+	],
+	"pageInfo": null
+}
+暂时不需要分页，只需要展示用户评论内容、评论点赞数量、评论时间即可
+要求样式紧凑简洁符合整体风格

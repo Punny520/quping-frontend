@@ -11,6 +11,12 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   config => {
+    // 从 localStorage 获取 token 并添加到请求头
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers['Token'] = token  // 确保使用大写的 'Token'
+    }
+
     // 打印请求信息，方便调试
     console.log('Request:', {
       url: config.url,

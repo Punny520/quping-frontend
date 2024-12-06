@@ -68,6 +68,49 @@
           </div>
         </div>
       </div>
+
+      <div class="comment-section">
+        <h3>评论</h3>
+        
+        <div class="comment-input-area">
+          <el-input
+            v-model="commentContent"
+            type="textarea"
+            :rows="2"
+            placeholder="写下你的评论..."
+            :maxlength="200"
+            show-word-limit
+          />
+          <el-button 
+            type="primary" 
+            @click="submitComment"
+            :loading="isSubmitting"
+            :disabled="!commentContent.trim()"
+          >
+            发送评论
+          </el-button>
+        </div>
+
+        <div class="comment-list">
+          <div v-if="comments.length === 0" class="no-comments">
+            暂无评论，来说说你的看法吧
+          </div>
+          <div v-else class="comment-items">
+            <div v-for="comment in comments" :key="comment.id" class="comment-item">
+              <div class="comment-content">{{ comment.content }}</div>
+              <div class="comment-meta">
+                <span class="like-count">
+                  <el-icon><Star /></el-icon>
+                  {{ comment.likeCount }}
+                </span>
+                <span class="comment-time">
+                  {{ formatTime(comment.createTime) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </el-card>
 </template>
@@ -77,7 +120,8 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRatingDetail, doRating } from '../api/rating'
 import { ElMessage } from 'element-plus'
-import { Picture, Loading } from '@element-plus/icons-vue'
+import { Picture, Loading, Thumb } from '@element-plus/icons-vue'
+import { postComment, getCommentList } from '../api/comment'
 
 const route = useRoute()
 const router = useRouter()
@@ -128,31 +172,31 @@ const goBack = () => {
 
 onMounted(() => {
   fetchRatingDetail()
+  fetchComments()
 })
 
 const myRatingScore = ref(0)
 const isSubmitting = ref(false)
 
 const handleRatingChange = async (value: number) => {
-  console.log('评分变化:', value)
-  if (isSubmitting.value) return
+  const token = localStorage.getItem('token')
+  if (!token) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
 
   try {
     isSubmitting.value = true
-    const res = await doRating(ratingDetail.value.id, Math.round(value))
-    console.log('评分响应:', res)
-
+    const res = await doRating(ratingDetail.value.id, value)
     if (res.data.code === '1') {
       ElMessage.success('评分成功')
       await fetchRatingDetail()
     } else {
       ElMessage.error(res.data.msg || '评分失败')
-      myRatingScore.value = ratingDetail.value.myScore || 0
     }
   } catch (error) {
-    console.error('评分错误:', error)
     ElMessage.error('评分失败')
-    myRatingScore.value = ratingDetail.value.myScore || 0
   } finally {
     isSubmitting.value = false
   }
@@ -160,6 +204,64 @@ const handleRatingChange = async (value: number) => {
 
 const initMyRating = () => {
   myRatingScore.value = ratingDetail.value.myScore || 0
+}
+
+const commentContent = ref('')
+const comments = ref([])
+
+const fetchComments = async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    return
+  }
+
+  try {
+    const res = await getCommentList(Number(route.params.id))
+    if (res.data.code === '1') {
+      comments.value = res.data.data
+    }
+  } catch (error) {
+    console.error('获取评论失败:', error)
+  }
+}
+
+const submitComment = async () => {
+  if (!commentContent.value.trim()) return
+  
+  const token = localStorage.getItem('token')
+  if (!token) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  
+  try {
+    isSubmitting.value = true
+    const res = await postComment(Number(route.params.id), commentContent.value.trim())
+    if (res.data.code === '1') {
+      ElMessage.success('评论成功')
+      commentContent.value = ''
+      await fetchComments()
+    } else {
+      ElMessage.error(res.data.msg || '评论失败')
+    }
+  } catch (error) {
+    console.error('提交评论失败:', error)
+    ElMessage.error('评论失败')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const formatTime = (timeStr: string) => {
+  const date = new Date(timeStr)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 </script>
 
@@ -341,5 +443,80 @@ h3 {
 :deep(.el-rate__text) {
   font-size: 14px;
   color: #ff9900;
+}
+
+.comment-section {
+  margin-top: 30px;
+  padding: 0 20px;
+}
+
+.comment-section h3 {
+  margin-bottom: 20px;
+  color: #303133;
+  font-size: 1.1rem;
+}
+
+.comment-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.comment-input-area .el-button {
+  align-self: flex-end;
+  padding: 8px 24px;
+}
+
+.comment-list {
+  margin-top: 20px;
+}
+
+.no-comments {
+  text-align: center;
+  color: #909399;
+  padding: 30px 0;
+  font-size: 14px;
+}
+
+.comment-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comment-item {
+  padding: 16px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+}
+
+.comment-content {
+  color: #303133;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.comment-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #909399;
+}
+
+.like-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.like-count .el-icon {
+  font-size: 14px;
+}
+
+.comment-time {
+  color: #c0c4cc;
 }
 </style> 
