@@ -1,4 +1,37 @@
 <template>
+  <el-dialog
+    v-model="showFirstLoginDialog"
+    title="首次登录设置"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    :show-close="false"
+    width="400px"
+  >
+    <el-form
+      ref="formRef"
+      :model="firstLoginForm"
+      :rules="rules"
+      label-width="80px"
+    >
+      <el-form-item label="昵称" prop="nickName">
+        <el-input v-model="firstLoginForm.nickName" placeholder="请输入昵称" />
+      </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input
+          v-model="firstLoginForm.password"
+          type="password"
+          placeholder="请设置密码"
+          show-password
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button type="primary" @click="handleFirstLoginSubmit" :loading="isSubmitting">
+        确认
+      </el-button>
+    </template>
+  </el-dialog>
+
   <div class="home-container">
     <div class="fixed-header">
       <!-- 添加顶部导航栏 -->
@@ -79,6 +112,8 @@ import { useRouter } from 'vue-router'
 import { getRatingList, getRatingTotal } from '../api/rating'
 import RatingCard from '../components/RatingCard.vue'
 import { ElMessage } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
+import request from '../utils/request'
 
 const router = useRouter()
 const searchQuery = ref('')
@@ -86,6 +121,27 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const ratingList = ref([])
+
+// 首次登录相关的状态
+const showFirstLoginDialog = ref(false)
+const isSubmitting = ref(false)
+const formRef = ref<FormInstance>()
+const firstLoginForm = ref({
+  nickName: '',
+  password: ''
+})
+
+// 表单验证规则
+const rules = {
+  nickName: [
+    { required: true, message: '请输入昵称', trigger: 'blur' },
+    { min: 2, max: 20, message: '昵称长度应在 2 到 20 个字符之间', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度应在 6 到 20 个字符之间', trigger: 'blur' }
+  ]
+}
 
 // 使用新的 API 方法
 const getTotalCount = async () => {
@@ -133,8 +189,58 @@ const handleCurrentChange = async (val: number) => {
   await fetchRatingList()
 }
 
+// 检查是否是首次登录
+const checkFirstLogin = async () => {
+  try {
+    const res = await request({
+      url: '/user/check',
+      method: 'get'
+    })
+    
+    if (res.data.code === '1' && res.data.data === true) {
+      showFirstLoginDialog.value = true
+    }
+  } catch (error) {
+    ElMessage.error('检查登录状态失败')
+  }
+}
+
+// 提交首次登录设置
+const handleFirstLoginSubmit = async () => {
+  if (!formRef.value) return
+  
+  await formRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        isSubmitting.value = true
+        const res = await request({
+          url: '/user/firstSetting',
+          method: 'post',
+          data: firstLoginForm.value
+        })
+        
+        if (res.data.code === '1') {
+          ElMessage.success('设置成功')
+          showFirstLoginDialog.value = false
+          // 重新加载页面数据
+          await getTotalCount()
+          await fetchRatingList()
+          return  // 添加 return 语句，防止继续执行
+        }
+        // 如果不是成功状态，显示错误信息
+        ElMessage.error(res.data.msg || '设置失败')
+      } catch (error) {
+        ElMessage.error('设置失败')
+      } finally {
+        isSubmitting.value = false
+      }
+    }
+  })
+}
+
 onMounted(async () => {
   console.log('组件挂载，开始获取数据') // 添加调试日志
+  await checkFirstLogin()
   await getTotalCount()
   await fetchRatingList()
 })
@@ -355,5 +461,24 @@ onMounted(async () => {
 
 :deep(.el-button.is-text:hover) {
   background-color: transparent;
+}
+
+:deep(.el-dialog__header) {
+  margin-right: 0;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+:deep(.el-dialog__body) {
+  padding: 30px 20px;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+:deep(.el-form-item:last-child) {
+  margin-bottom: 0;
 }
 </style> 
