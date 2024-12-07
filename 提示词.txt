@@ -221,3 +221,35 @@ true就表示用户是第一次登录，false或者null就表示不是第一次�
 	"password":""
 }
 
+现在需要你修改home.vue主界面的逻辑，抛弃原本的/rating/page接口和/rating/total接口
+加载数据统一使用/rating/search接口,请求方式为post
+请求体示例为
+{
+    "pageNumber": 1,
+    "pageSiez": 20,
+    "condition": "食品"
+}
+其中condition是条件查询，条件需要用户在搜索框输入，然后点击搜索按钮
+后端返回的格式为：
+{
+	"code": "1",
+	"msg": "ok",
+	"data": {
+		"total": 1,
+		"dataList": [
+			{
+				"id": 1116,
+				"imageUrl": "http://video.thma67.biz/ClothingShoesandJewelry",
+				"score": 4,
+				"title": "傅記食品有限责任公司",
+				"text": "饮食业",
+				"count": 2,
+				"myScore": null,
+				"createBy": null,
+				"image": null
+			}
+		]
+	}
+}
+一开始加载数据也是调用/rating/search接口，只是condition为空,就会列出所有数据
+

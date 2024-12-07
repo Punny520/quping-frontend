@@ -61,13 +61,14 @@
       <!-- 搜索区域 -->
       <div class="search-section">
         <el-input
-          v-model="searchQuery"
+          v-model="searchCondition"
           placeholder="搜索你感兴趣的内容..."
           class="search-input"
           :prefix-icon="Search"
+          @keyup.enter="handleSearch"
         >
           <template #append>
-            <el-button :icon="Search">搜索</el-button>
+            <el-button :icon="Search" @click="handleSearch">搜索</el-button>
           </template>
         </el-input>
       </div>
@@ -77,7 +78,7 @@
     <div class="content-area">
       <div class="rating-list">
         <div v-if="ratingList.length === 0" class="empty-state">
-          暂无数据
+          {{ searchCondition ? '没有找到相关内容' : '暂无数据' }}
         </div>
         <div v-else class="rating-grid">
           <rating-card
@@ -117,6 +118,7 @@ import request from '../utils/request'
 
 const router = useRouter()
 const searchQuery = ref('')
+const searchCondition = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -143,50 +145,51 @@ const rules = {
   ]
 }
 
-// 使用新的 API 方法
-const getTotalCount = async () => {
+// 修改状态管理
+const loadData = async () => {
   try {
-    const res = await getRatingTotal()
-    console.log('获取总数响应:', res)
-    total.value = parseInt(res.data)
-    console.log('设置总数:', total.value)
-  } catch (error) {
-    console.error('获取总数错误:', error)
-    ElMessage.error('获取总记录数失败')
-  }
-}
-
-const fetchRatingList = async () => {
-  try {
-    const res = await getRatingList({
-      pageNumber: currentPage.value,
-      pageSize: pageSize.value
+    const res = await request({
+      url: '/rating/search',
+      method: 'post',
+      data: {
+        pageNumber: currentPage.value,
+        pageSize: pageSize.value,
+        condition: searchCondition.value
+      }
     })
-    
+
     if (res.data.code === '1') {
-      ratingList.value = res.data.data
-      console.log('获取列表数据:', ratingList.value) // 添加调试日志
+      ratingList.value = res.data.data.dataList || []
+      total.value = res.data.data.total || 0
     } else {
       ElMessage.error(res.data.msg || '获取数据失败')
+      ratingList.value = []
+      total.value = 0
     }
   } catch (error) {
-    console.error('获取列表错误:', error) // 添加错误日志
     ElMessage.error('获取数据失败')
+    ratingList.value = []
+    total.value = 0
   }
 }
 
-const handleSizeChange = async (val: number) => {
-  console.log('改变每页数量:', val) // 添加调试日志
-  pageSize.value = val
-  currentPage.value = 1
-  await getTotalCount()
-  await fetchRatingList()
+// 处理搜索按钮点击
+const handleSearch = () => {
+  currentPage.value = 1  // 重置页码
+  loadData()
 }
 
-const handleCurrentChange = async (val: number) => {
-  console.log('改变当前页:', val) // 添加调试日志
-  currentPage.value = val
-  await fetchRatingList()
+// 处理页码变化
+const handleCurrentChange = (page: number) => {
+  currentPage.value = page
+  loadData()
+}
+
+// 处理每页条数变化
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+  loadData()
 }
 
 // 检查是否是首次登录
@@ -223,8 +226,7 @@ const handleFirstLoginSubmit = async () => {
           ElMessage.success('设置成功')
           showFirstLoginDialog.value = false
           // 重新加载页面数据
-          await getTotalCount()
-          await fetchRatingList()
+          await loadData()
           return  // 添加 return 语句，防止继续执行
         }
         // 如果不是成功状态，显示错误信息
@@ -238,11 +240,10 @@ const handleFirstLoginSubmit = async () => {
   })
 }
 
+// 页面加载时获取数据
 onMounted(async () => {
-  console.log('组件挂载，开始获取数据') // 添加调试日志
   await checkFirstLogin()
-  await getTotalCount()
-  await fetchRatingList()
+  await loadData()
 })
 </script>
 
