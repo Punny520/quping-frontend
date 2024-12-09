@@ -256,3 +256,8 @@ true就表示用户是第一次登录，false或者null就表示不是第一次�
 能否给上传图片添加一个裁剪功能，用来规范上传图片的规格
 需要上传的图片为正方形，且大小就是适应ratingDetail.vue中展示的那么大
 并且需要检查图片的大小，裁剪过后最大不能超过2MB
+
+现在需要修改RatingDetail.vue和RatingCard.vue获取评分的逻辑
+之前是直接通过响应体中的score获取，现在响应体中没有score取而代之的是
+totalScoreh和count,你需要使用totalScore/count来计算评分，结果保留2位小数
+注意如果count=0则评分直接就为0防止出现除以0的错误

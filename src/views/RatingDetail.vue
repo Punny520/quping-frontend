@@ -28,9 +28,9 @@
         <h2>{{ ratingDetail.title }}</h2>
         <div class="rating-summary">
           <div class="average-score">
-            <span class="score-number">{{ ratingDetail.score.toFixed(1) }}</span>
+            <span class="score-number">{{ computedScore }}</span>
             <el-rate
-              v-model="ratingDetail.score"
+              v-model="computedScore"
               disabled
               show-score
               text-color="#ff9900"
@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRatingDetail, doRating } from '../api/rating'
 import { ElMessage } from 'element-plus'
@@ -132,10 +132,10 @@ const router = useRouter()
 interface RatingDetail {
   id: number
   imageUrl: string
-  score: number
+  totalScore: number
+  count: number
   title: string
   text: string
-  count: number
   myScore: number | null
   createBy: string | null
 }
@@ -143,12 +143,17 @@ interface RatingDetail {
 const ratingDetail = ref<RatingDetail>({
   id: 0,
   imageUrl: '',
-  score: 0,
+  totalScore: 0,
+  count: 0,
   title: '',
   text: '',
-  count: 0,
   myScore: null,
   createBy: null
+})
+
+const computedScore = computed(() => {
+  if (ratingDetail.value.count === 0) return 0
+  return Number((ratingDetail.value.totalScore / ratingDetail.value.count).toFixed(1))
 })
 
 const fetchRatingDetail = async () => {
@@ -156,10 +161,7 @@ const fetchRatingDetail = async () => {
     const id = Number(route.params.id)
     const res = await getRatingDetail(id)
     if (res.data.code === '1') {
-      ratingDetail.value = {
-        ...res.data.data,
-        score: Number(res.data.data.score)
-      }
+      ratingDetail.value = res.data.data
       initMyRating()
     } else {
       ElMessage.error(res.data.msg || '获取评分详情失败')
@@ -176,6 +178,7 @@ const goBack = () => {
 onMounted(() => {
   fetchRatingDetail()
   fetchComments()
+  initMyRating()
 })
 
 const myRatingScore = ref(0)

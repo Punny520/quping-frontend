@@ -23,7 +23,7 @@
           <h3 class="title">{{ rating.title }}</h3>
           <div class="score-container">
             <el-rate
-              v-model="rating.score"
+              v-model="computedScore"
               disabled
               show-score
               text-color="#ff9900"
@@ -40,14 +40,15 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue'
+import { defineProps, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Picture, Loading } from '@element-plus/icons-vue'
 
 interface Rating {
   id: number
   imageUrl: string
-  score: number
+  totalScore: number
+  count: number
   title: string
   text: string
 }
@@ -57,6 +58,11 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+
+const computedScore = computed(() => {
+  if (props.rating.count === 0) return 0
+  return Number((props.rating.totalScore / props.rating.count).toFixed(1))
+})
 
 const goToDetail = () => {
   router.push(`/rating/${props.rating.id}`)
