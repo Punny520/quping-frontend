@@ -1,54 +1,177 @@
 <template>
   <div class="me-container">
     <div class="content-wrapper">
-      <el-card class="user-info-card">
-        <template #header>
-          <div class="card-header">
-            <h2>个人信息</h2>
-            <div class="header-buttons">
-              <el-button 
-                type="primary" 
-                @click="handleCreateRating"
-                :icon="Plus"
-              >
-                创建评分
-              </el-button>
-              <el-button 
-                type="danger" 
-                @click="handleLogout"
-                :icon="SwitchButton"
-              >
-                退出登录
-              </el-button>
+      <!-- 将导航栏移到内容区域内 -->
+      <div class="nav-bar">
+        <div class="nav-content">
+          <div class="nav-title">个人主页</div>
+          <el-button 
+            class="back-button" 
+            :icon="ArrowLeft"
+            @click="router.push('/')"
+            text
+          />
+        </div>
+      </div>
+
+      <div class="profile-wrapper">
+        <!-- 背景图片 -->
+        <div class="profile-header">
+          <img src="https://picsum.photos/800/200" alt="背景图片" class="header-image" />
+        </div>
+
+        <!-- 个人信息区域 -->
+        <div class="profile-info">
+          <div class="avatar-container">
+            <el-avatar 
+              :size="120" 
+              class="user-avatar"
+            >
+              {{ userInfo.nickName?.charAt(0)?.toUpperCase() }}
+            </el-avatar>
+          </div>
+
+          <div class="info-actions">
+            <el-button 
+              class="edit-profile-btn"
+              round
+              @click="handleEditProfile"
+            >
+              编辑个人资料
+            </el-button>
+          </div>
+
+          <div class="user-details">
+            <h2 class="user-name">{{ userInfo.nickName }}</h2>
+            <p class="user-id">@{{ userInfo.id }}</p>
+            <p class="user-bio">喜欢分享，热爱生活</p>
+            
+            <div class="user-stats">
+              <div class="stat-item">
+                <span class="stat-count">58</span>
+                <span class="stat-label">正在关注</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-count">128</span>
+                <span class="stat-label">关注者</span>
+              </div>
             </div>
           </div>
-        </template>
-        
-        <div class="user-info-content">
+        </div>
+
+        <!-- 导航栏 -->
+        <div class="profile-nav">
+          <div class="nav-items">
+            <div class="nav-item active">评分</div>
+            <div class="nav-item">点赞</div>
+            <div class="nav-item">收藏</div>
+            <div class="nav-item">文章</div>
+          </div>
+        </div>
+
+        <!-- 内容区域（示例） -->
+        <div class="profile-content">
+          <div class="empty-content">
+            <el-icon class="empty-icon"><Star /></el-icon>
+            <p>还没有发布任何评分</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="action-buttons">
+      <el-button 
+        type="primary" 
+        @click="handleCreateRating"
+        :icon="Plus"
+        round
+      >
+        创建评分
+      </el-button>
+      <el-button 
+        type="danger" 
+        @click="handleLogout"
+        :icon="SwitchButton"
+        round
+      >
+        退出登录
+      </el-button>
+    </div>
+
+    <!-- 添加编辑个人资料的 Dialog -->
+    <el-dialog
+      v-model="dialogVisible"
+      :show-close="false"
+      :close-on-click-modal="false"
+      class="edit-profile-dialog"
+    >
+      <!-- 自定义header -->
+      <div class="dialog-header">
+        <el-button 
+          class="close-button" 
+          @click="dialogVisible = false"
+          text
+        >
+          <el-icon><Close /></el-icon>
+        </el-button>
+        <span class="dialog-title">编辑个人资料</span>
+        <el-button 
+          class="save-button" 
+          @click="handleSaveProfile"
+          text
+        >
+          保存
+        </el-button>
+      </div>
+
+      <div class="dialog-content">
+        <!-- 背景图片上传 -->
+        <div class="background-upload">
+          <img 
+            src="https://picsum.photos/800/200" 
+            alt="背景图片" 
+            class="background-image" 
+          />
+          <div class="upload-overlay">
+            <el-icon class="upload-icon"><Camera /></el-icon>
+          </div>
+        </div>
+
+        <!-- 头像上传 -->
+        <div class="avatar-upload">
           <el-avatar 
             :size="80" 
             class="user-avatar"
           >
             {{ userInfo.nickName?.charAt(0)?.toUpperCase() }}
           </el-avatar>
-          
-          <el-descriptions :column="1" border>
-            <el-descriptions-item label="用户ID">
-              {{ userInfo.id }}
-            </el-descriptions-item>
-            <el-descriptions-item label="昵称">
-              {{ userInfo.nickName }}
-            </el-descriptions-item>
-            <el-descriptions-item label="手机号">
-              {{ userInfo.phoneNumber }}
-            </el-descriptions-item>
-            <el-descriptions-item label="邮箱">
-              {{ userInfo.email || '未设置' }}
-            </el-descriptions-item>
-          </el-descriptions>
+          <div class="upload-icon-wrapper">
+            <el-icon class="camera-icon"><Camera /></el-icon>
+          </div>
         </div>
-      </el-card>
-    </div>
+
+        <!-- 表单区域 -->
+        <div class="form-section">
+          <div class="form-item">
+            <div class="form-label">全名</div>
+            <el-input 
+              v-model="editForm.nickName" 
+              placeholder="请输入您的名字"
+            />
+          </div>
+          <div class="form-item">
+            <div class="form-label">简介</div>
+            <el-input
+              v-model="editForm.bio"
+              type="textarea"
+              :rows="3"
+              placeholder="介绍一下自己吧"
+            />
+          </div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -57,7 +180,7 @@ import { ref, onMounted } from 'vue'
 import { getUserInfo, logout } from '../api/user'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { Plus, SwitchButton } from '@element-plus/icons-vue'
+import { Plus, SwitchButton, Star, ArrowLeft, Camera, Close } from '@element-plus/icons-vue'
 
 const router = useRouter()
 
@@ -104,6 +227,39 @@ const handleLogout = async () => {
   }
 }
 
+// 添加 dialog 相关的状态
+const dialogVisible = ref(false)
+const editForm = ref({
+  nickName: '',
+  bio: ''
+})
+
+// 添加编辑个人资料的处理函数
+const handleEditProfile = () => {
+  // 初始化表单数据
+  editForm.value.nickName = userInfo.value.nickName
+  editForm.value.bio = '喜欢分享，热爱生活' // 可以从 userInfo 中获取
+  dialogVisible.value = true
+}
+
+const handleSaveProfile = async () => {
+  try {
+    // 这里添加保存个人资料的 API 调用
+    // await updateUserProfile(editForm.value)
+    ElMessage.success('保存成功')
+    dialogVisible.value = false
+    // 重新获取用户信息
+    await fetchUserInfo()
+  } catch (error) {
+    ElMessage.error('保存失败')
+  }
+}
+
+const handleAvatarChange = (file: any) => {
+  // 处理头像上传
+  console.log(file)
+}
+
 onMounted(() => {
   fetchUserInfo()
 })
@@ -113,76 +269,328 @@ onMounted(() => {
 .me-container {
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 40px 20px;
+  min-width: 320px;
+  background-color: #f0f2f5;
+  padding: 0;
 }
 
 .content-wrapper {
   max-width: 800px;
+  width: 100%;
   margin: 0 auto;
 }
 
-.user-info-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+.nav-bar {
+  width: 100%;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.card-header {
+.nav-content {
+  height: 50px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
+  padding: 0 16px;
+  position: relative;
 }
 
-.card-header h2 {
-  margin: 0;
-  color: #409EFF;
-  font-size: 24px;
+.nav-title {
+  font-size: 16px;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
 }
 
-.header-buttons {
-  display: flex;
-  gap: 12px;
+.back-button {
+  font-size: 20px;
+  position: absolute;
+  left: 16px;
 }
 
-.user-info-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
+.profile-wrapper {
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  height: 200px;
+  width: 100%;
+  overflow: hidden;
+  background-color: #f0f2f5;
+}
+
+.header-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 200px;
+  display: block;
+}
+
+.profile-info {
+  padding: 0 16px;
+  position: relative;
+}
+
+.avatar-container {
+  position: absolute;
+  top: -60px;
+  left: 16px;
 }
 
 .user-avatar {
-  background: #409EFF;
-  font-size: 32px;
+  border: 4px solid #fff;
+  background: #1da1f2;
+  font-size: 48px;
   font-weight: bold;
 }
 
-:deep(.el-descriptions) {
+.info-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 0;
+}
+
+.edit-profile-btn {
+  font-weight: bold;
+}
+
+.user-details {
+  padding: 12px 0;
+}
+
+.user-name {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.user-id {
+  margin: 4px 0;
+  color: #536471;
+}
+
+.user-bio {
+  margin: 12px 0;
+  font-size: 15px;
+}
+
+.user-stats {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+.stat-item {
+  display: flex;
+  gap: 4px;
+  color: #536471;
+}
+
+.stat-count {
+  font-weight: bold;
+  color: #000;
+}
+
+.profile-nav {
+  margin-top: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.nav-items {
+  display: flex;
+  justify-content: space-around;
+}
+
+.nav-item {
+  padding: 16px 0;
+  font-weight: bold;
+  color: #536471;
+  cursor: pointer;
+  position: relative;
+}
+
+.nav-item.active {
+  color: #000;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
   width: 100%;
+  height: 4px;
+  background-color: #1da1f2;
+  border-radius: 4px;
 }
 
-:deep(.el-descriptions__label) {
-  width: 100px;
+.profile-content {
+  min-height: 300px;
+  padding: 32px 16px;
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  background-color: #f5f7fa;
+  color: #536471;
+  padding: 40px 0;
 }
 
-:deep(.el-descriptions__content) {
-  padding: 12px 24px;
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
 }
 
-:deep(.el-button) {
-  padding: 12px 20px;
+.action-buttons {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .user-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+  }
+
+  .avatar-container {
+    top: -40px;
+  }
+}
+
+.edit-profile-dialog {
+  :deep(.el-dialog) {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  :deep(.el-dialog__header) {
+    display: none;
+  }
+
+  :deep(.el-dialog__body) {
+    padding: 0;
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.dialog-title {
+  font-size: 16px;
   font-weight: 500;
 }
 
-:deep(.el-card__header) {
-  padding: 20px 24px;
-  border-bottom: 1px solid #ebeef5;
+.close-button, .save-button {
+  font-size: 16px;
+  height: 32px;
+  padding: 0 4px;
 }
 
-:deep(.el-card__body) {
-  padding: 24px;
+.save-button {
+  color: #1a73e8;
 }
-</style> 
+
+.background-upload {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.background-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-icon {
+  color: white;
+  font-size: 20px;
+}
+
+.avatar-upload {
+  position: relative;
+  margin: -40px 16px 16px;
+  width: fit-content;
+}
+
+.upload-icon-wrapper {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-icon {
+  color: white;
+  font-size: 16px;
+}
+
+.form-section {
+  padding: 16px;
+}
+
+.form-item {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  color: #666;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner) {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+:deep(.el-input__inner) {
+  height: 40px;
+}
+
+:deep(.el-textarea__inner) {
+  padding: 8px 12px;
+}
+</style>
