@@ -26,6 +26,7 @@
             <el-avatar 
               :size="120" 
               class="user-avatar"
+              :src="userInfo.avatarUrl || defaultAvatar"
             >
               {{ userInfo.nickName?.charAt(0)?.toUpperCase() }}
             </el-avatar>
@@ -143,12 +144,14 @@
           <el-avatar 
             :size="80" 
             class="user-avatar"
+            :src="editForm.avatarPreview || userInfo.avatarUrl || defaultAvatar"
           >
             {{ userInfo.nickName?.charAt(0)?.toUpperCase() }}
           </el-avatar>
-          <div class="upload-icon-wrapper">
-            <el-icon class="camera-icon"><Camera /></el-icon>
+          <div class="upload-icon-wrapper" @click="triggerFileInput">
+            <el-icon class="camera-icon"><Plus /></el-icon>
           </div>
+          <input type="file" ref="fileInput" @change="handleFileChange" accept="image/*" style="display: none;" />
         </div>
 
         <!-- 表单区域 -->
@@ -172,6 +175,37 @@
         </div>
       </div>
     </el-dialog>
+
+    <el-dialog
+      v-model="showAvatarCropper"
+      title="裁剪头像"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <div class="cropper-container">
+        <VueCropper
+          ref="avatarCropperRef"
+          :img="avatarCropperImage"
+          :autoCrop="true"
+          :fixedBox="true"
+          :fixed="true"
+          :fixedNumber="[1, 1]"
+          :centerBox="true"
+          :info="true"
+          :full="true"
+          :high="true"
+          outputType="jpeg"
+          :outputSize="1"
+          :canMove="true"
+          :canMoveBox="true"
+          :canScale="true"
+        />
+      </div>
+      <template #footer>
+        <el-button @click="showAvatarCropper = false">取消</el-button>
+        <el-button type="primary" @click="handleCropAvatar">确认</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -181,6 +215,7 @@ import { getUserInfo, logout } from '../api/user'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { Plus, SwitchButton, Star, ArrowLeft, Camera, Close } from '@element-plus/icons-vue'
+import { VueCropper } from 'vue-cropper'
 
 const router = useRouter()
 
@@ -189,13 +224,24 @@ interface UserInfo {
   nickName: string
   phoneNumber: string
   email: string
+  avatarUrl: string
 }
+
+const defaultAvatar = 'path/to/default/avatar.png'  // 默认头像路径
 
 const userInfo = ref<UserInfo>({
   id: 0,
   nickName: '',
   phoneNumber: '',
-  email: ''
+  email: '',
+  avatarUrl: ''
+})
+
+const editForm = ref({
+  nickName: '',
+  bio: '',
+  avatarPreview: '',
+  avatarFile: null as File | null
 })
 
 const fetchUserInfo = async () => {
@@ -229,16 +275,14 @@ const handleLogout = async () => {
 
 // 添加 dialog 相关的状态
 const dialogVisible = ref(false)
-const editForm = ref({
-  nickName: '',
-  bio: ''
-})
 
 // 添加编辑个人资料的处理函数
 const handleEditProfile = () => {
   // 初始化表单数据
   editForm.value.nickName = userInfo.value.nickName
   editForm.value.bio = '喜欢分享，热爱生活' // 可以从 userInfo 中获取
+  editForm.value.avatarPreview = ''
+  editForm.value.avatarFile = null
   dialogVisible.value = true
 }
 
@@ -255,9 +299,55 @@ const handleSaveProfile = async () => {
   }
 }
 
-const handleAvatarChange = (file: any) => {
-  // 处理头像上传
-  console.log(file)
+const handleAvatarChange = (file: File) => {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    avatarCropperImage.value = e.target?.result as string
+    showAvatarCropper.value = true
+  }
+  reader.readAsDataURL(file)
+}
+
+const showAvatarCropper = ref(false)
+const avatarCropperImage = ref('')
+const avatarCropperRef = ref()
+
+const handleCropAvatar = () => {
+  if (!avatarCropperRef.value) return
+
+  avatarCropperRef.value.getCropData((data: string) => {
+    const base64Data = data.split(',')[1]
+    const binaryData = atob(base64Data)
+    const array = new Uint8Array(binaryData.length)
+    for (let i = 0; i < binaryData.length; i++) {
+      array[i] = binaryData.charCodeAt(i)
+    }
+    const blob = new Blob([array], { type: 'image/jpeg' })
+
+    if (blob.size / 1024 / 1024 > 2) {
+      ElMessage.error('裁剪后的头像大小不能超过 2MB')
+      return
+    }
+
+    editForm.value.avatarPreview = URL.createObjectURL(blob)
+    editForm.value.avatarFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
+
+    showAvatarCropper.value = false
+  })
+}
+
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) {
+    handleAvatarChange(file)
+  }
 }
 
 onMounted(() => {
@@ -558,6 +648,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.upload-icon-wrapper:hover {
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .camera-icon {
@@ -592,5 +688,24 @@ onMounted(() => {
 
 :deep(.el-textarea__inner) {
   padding: 8px 12px;
+}
+
+.cropper-container {
+  height: 400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+:deep(.vue-cropper) {
+  height: 100%;
+  width: 100%;
+}
+
+:deep(.cropper-view-box) {
+  border-radius: 50%;
+}
+
+:deep(.cropper-face) {
+  border-radius: 50%;
 }
 </style>
