@@ -45,7 +45,7 @@
           <div class="user-details">
             <h2 class="user-name">{{ userInfo.nickName }}</h2>
             <p class="user-id">@{{ userInfo.id }}</p>
-            <p class="user-bio">喜欢分享，热爱生活</p>
+            <p class="user-bio">{{ userInfo.description || '这个人很懒，还没有写简介' }}</p>
             
             <div class="user-stats">
               <div class="stat-item">
@@ -139,7 +139,7 @@
           </div>
         </div>
 
-        <!-- 头像上传 -->
+        <!-- 头像上�� -->
         <div class="avatar-upload">
           <el-avatar 
             :size="80" 
@@ -166,7 +166,7 @@
           <div class="form-item">
             <div class="form-label">简介</div>
             <el-input
-              v-model="editForm.bio"
+              v-model="editForm.description"
               type="textarea"
               :rows="3"
               placeholder="介绍一下自己吧"
@@ -211,11 +211,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getUserInfo, logout } from '../api/user'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { Plus, SwitchButton, Star, ArrowLeft, Camera, Close } from '@element-plus/icons-vue'
 import { VueCropper } from 'vue-cropper'
+import request from '../utils/request'
 
 const router = useRouter()
 
@@ -223,30 +223,40 @@ interface UserInfo {
   id: number
   nickName: string
   phoneNumber: string
-  email: string
+  email: string | null
   avatarUrl: string
+  description: string
+  firstLogin: boolean
+  createTime: string
+  updateTime: string
+  deleted: boolean
 }
 
-const defaultAvatar = 'path/to/default/avatar.png'  // 默认头像路径
+const defaultAvatar = 'path/to/default/avatar.png'
 
 const userInfo = ref<UserInfo>({
   id: 0,
   nickName: '',
   phoneNumber: '',
-  email: '',
-  avatarUrl: ''
+  email: null,
+  avatarUrl: '',
+  description: '',
+  firstLogin: false,
+  createTime: '',
+  updateTime: '',
+  deleted: false
 })
 
 const editForm = ref({
   nickName: '',
-  bio: '',
+  description: '',
   avatarPreview: '',
   avatarFile: null as File | null
 })
 
 const fetchUserInfo = async () => {
   try {
-    const res = await getUserInfo()
+    const res = await request.get('/user/me')
     if (res.data.code === '1') {
       userInfo.value = res.data.data
     } else {
@@ -273,14 +283,11 @@ const handleLogout = async () => {
   }
 }
 
-// 添加 dialog 相关的状态
 const dialogVisible = ref(false)
 
-// 添加编辑个人资料的处理函数
 const handleEditProfile = () => {
-  // 初始化表单数据
   editForm.value.nickName = userInfo.value.nickName
-  editForm.value.bio = '喜欢分享，热爱生活' // 可以从 userInfo 中获取
+  editForm.value.description = userInfo.value.description
   editForm.value.avatarPreview = ''
   editForm.value.avatarFile = null
   dialogVisible.value = true
@@ -288,12 +295,26 @@ const handleEditProfile = () => {
 
 const handleSaveProfile = async () => {
   try {
-    // 这里添加保存个人资料的 API 调用
-    // await updateUserProfile(editForm.value)
-    ElMessage.success('保存成功')
-    dialogVisible.value = false
-    // 重新获取用户信息
-    await fetchUserInfo()
+    const formData = new FormData()
+    if (editForm.value.avatarFile) {
+      formData.append('avatarFile', editForm.value.avatarFile)
+    }
+    formData.append('nickName', editForm.value.nickName)
+    formData.append('description', editForm.value.description)
+
+    const res = await request.post('/user/update', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    if (res.data.code === '1') {
+      ElMessage.success('保存成功')
+      dialogVisible.value = false
+      await fetchUserInfo()
+    } else {
+      ElMessage.error(res.data.msg || '保存失败')
+    }
   } catch (error) {
     ElMessage.error('保存失败')
   }

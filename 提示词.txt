@@ -266,3 +266,30 @@ totalScoreh和count,你需要使用totalScore/count来计算评分，结果保�
 然后是一个头像，下面显示昵称，还有简介，右边有一个编辑个人资料按钮，下面有很多导航栏
 可以展示不同用户的一些动态之类，但是这个现在不做，只用搞个样式即可可以随便写，比如评分
 点赞文章等关注也不用做，可以先写上样式。
+
+
+现在重构Me.vue的逻辑，获取用户信息的接口为/user/me，请求方式为get请求头需要带上Token
+后端返回的示例为：
+{
+	"code": "1",
+	"msg": "ok",
+	"data": {
+		"id": 2,
+		"avatarUrl": "http://192.168.243.129:9000/quping-image/2024-12-11-17-05-46-KQtSv4.jpg",
+		"description": "喜欢运动",
+		"nickName": "13123213",
+		"phoneNumber": "17777777777",
+		"password": "qweqweqw",
+		"email": null,
+		"firstLogin": false,
+		"createTime": "2024-12-11T16:50:42",
+		"updateTime": "2024-12-11T17:05:46",
+		"deleted": false
+	}
+}
+主页目前需要展示的有用户头像avatarUrl下面的描述description，昵称nickName
+接着就是修改用户信息的逻辑
+首先用户点击编辑个人资料按钮，会弹出修改信息的对话框，这个是一个表单
+包括有avatarFile、nickName、description。用户点击保存后就调用接口
+/user/update请求方式为post，请求头需要带上Token，和表单数据
+根据我的描述完善所以的逻辑，要求不改变样式。图片上传的逻辑也不用改
